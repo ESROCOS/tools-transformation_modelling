@@ -1,0 +1,51 @@
+<!--
+
+Component-Network we want to annotate:
+
+################
+# KalmanFilter # provides an odometry, which transforms points in the robot bases coordinates to world coordinates 
+################
+
+####################
+# Landmark Updater # Identifies Points in the camera coordinate system 
+#################### and needs a transformation to express those points in world coordinates
+
+World-Model we want to represent:
+
+[WORLD] // world frame
+|
+dynamicTransform <odometry, kalmanfilter>  // odometry is the name, kalman_filter the providing component 
+|
+[ROBOT_BASE] // base frame of the robot
+|
+staticTransform<CameraFixture>   //no name given, no component referenced
+|
+[CAMERA] // camera frame
+
+-->
+
+<requests>
+
+  <TransformationRequest>
+    <ComponentReference>landmark_updater</ComponentReference> <!-- also allow port references here optionally -->
+    <TransformationHeader target="camera" expressed_in="world" /> 
+  </TransformationRequest>
+
+</requests>
+
+<transformations>
+
+  <StaticTransformation> <!-- name is optional, will be auto-generated otherwise as e.g. from2to, if they are required at all -->
+    <TransformationHeader target="camera" expressed_in="robot_base" /> 
+    <TransformatuinValue matrix = "1,0,0,0.2
+                                   0,1,0,0
+                                   0,0,1,0.5
+                                   0,0,0,1" />
+  </StaticTransformation>
+
+  <GeneratedTransformation>
+    <ComponentReference name="kalman_filter", port="odometry" />
+    <TransformationHeader target="robot_base" expressed_in="world" /> 
+  </GeneratedTransform>
+
+</transformations>
