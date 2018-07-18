@@ -23,9 +23,15 @@ REQUESTED_EDGE_STYLE = "dotted"
 COLOR_EDGE_VALID = "green" 
 COLOR_EDGE_INVALID = "red"
 
+# DEFINE PYTHON GRAPH STRUCTURE
 
-# DEFINE GRAPHVIZ GRAPH
-dot = Graph(comment=GRAPH_NAME)
+frames = Set()
+transforms = Set()
+requested_transforms = Set()
+
+#frames = Set()
+#transforms = Set()
+#requested_transforms = Set()
 
 # PARSE XML FILE
 tree = ET.parse(FILE)
@@ -34,34 +40,72 @@ root = tree.getroot()
 requested = root.find(REQ)
 provided = root.find(PROV)
 
-frames = Set()
-transforms = Set()
-requested_transforms = Set()
+# BUILD TRANSFORMATION GRAPH
+class Adjacency:
+   
+  def __init__(self, target, style="solid", color="black"):
+    self.target = target
+    self.style = style
+    self.color = color
 
-# BUILD TRANSFORMATION TREE
+provided_graph = {}
 
 for child in provided:
   header       = child.find(HEADER)
 
+  tar = header.get("target")
+  ex = header.get("expressed_in") 
+  
+  edge_style = STATIC_EDGE_STYLE  
+  if child.tag == DYN_TF:
+    edge_style = DYNAMIC_EDGE_STYLE
+
+  if tar in provided_graph:
+    provided_graph[tar].append(Adjacency(ex, edge_style))
+  else: 
+    provided_graph[tar] = [Adjacency(ex, edge_style)]
+ 
+  if ex in provided_graph:
+    provided_graph[ex].append(Adjacency(tar, edge_style))
+  else:
+    provided_graph[ex] = [Adjacency(tar, edge_style)]
+
+# BUILD GRAPHVIZ GRAPH FROM TRANSFORMATION GRAPH
+
+dot = Graph(comment=GRAPH_NAME)
+
+edges = Set()
+
+for frame in provided_graph:
+  dot.node(frame)
+  for adjacent in provided_graph[frame]:
+    if not (frame,adjacent.target) in edges:
+      dot.edge(frame,adjacent.target, style=adjacent.style, color=adjacent.color)
+      edges.add((frame,adjacent.target))
+      edges.add((adjacent.target,frame))
+
+dot.render('transforms.gv', view=True)
+
+ 
   #frames.add(header.get("target"))
   #frames.add(header.get("expressed_in"))
   #transforms.add((header.get("target"),header.get("expressed_in")))
 
-  if child.tag == DYN_TF:
-    edge_style = DYNAMIC_EDGE_STYLE
-  else:
-    edge_style = STATIC_EDGE_STYLE
+  #if child.tag == DYN_TF:
+  #  edge_style = DYNAMIC_EDGE_STYLE
+  #else:
+  #  edge_style = STATIC_EDGE_STYLE
 
-  dot.node(header.get(tar),header.get(tar))
-  dot.node(header.get(ex_in),header.get(ex_in))
-  dot.edge(header.get(tar),header.get(ex_in), style=edge_style)
+  #dot.node(header.get(tar),header.get(tar))
+  #dot.node(header.get(ex_in),header.get(ex_in))
+  #dot.edge(header.get(tar),header.get(ex_in), style=edge_style)
 
-for child in requested:
-  header       = child.find(HEADER)
+#for child in requested:
+#  header       = child.find(HEADER)
 #  requested_transforms.add((header.get("target"),header.get("expressed_in")))
-  dot.node(header.get(tar),header.get(tar))
-  dot.node(header.get(ex_in),header.get(ex_in))
-  dot.edge(header.get(tar),header.get(ex_in), style=REQUESTED_EDGE_STYLE, color=COLOR_EDGE_VALID)
+#  dot.node(header.get(tar),header.get(tar))
+#  dot.node(header.get(ex_in),header.get(ex_in))
+#  dot.edge(header.get(tar),header.get(ex_in), style=REQUESTED_EDGE_STYLE, color=COLOR_EDGE_VALID)
 
 # BUILD ACTUAL TRANSFORMATION TREE
 
@@ -77,7 +121,6 @@ for child in requested:
 #for transform in transforms:
 #  dot.edge(transform[0],transform[1], style=)
 
-dot.render('transforms.gv', view=True)
   
 
 
