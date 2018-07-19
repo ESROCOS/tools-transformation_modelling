@@ -1,0 +1,46 @@
+<transformations>
+<requested>
+
+  <TransformationRequest>
+    <ComponentReference name = "landmark_detector" />
+    <TransformationHeader target="camera" expressed_in="world" /> 
+  </TransformationRequest>
+
+  <TransformationRequest>
+    <ComponentReference name = "gripper_controller" />
+    <TransformationHeader target="end_effector" expressed_in="robot_base" /> 
+  </TransformationRequest>
+
+</requested>
+
+<provided>
+
+  <StaticTransformation> <!-- name is optional, will be auto-generated otherwise as e.g. from2to, if they are required at all -->
+    <TransformationHeader target="robot_arm_fixture" expressed_in="robot_base" /> 
+    <TransformatuinValue matrix = "1,0,0,0.2
+                                   0,1,0,0
+                                   0,0,1,0.5
+                                   0,0,0,1" />
+  </StaticTransformation>
+
+  <StaticTransformation> <!-- name is optional, will be auto-generated otherwise as e.g. from2to, if they are required at all -->
+    <TransformationHeader target="camera" expressed_in="end_effector" /> 
+    <TransformatuinValue matrix = "1,0,0,0.2
+                                   0,1,0,0
+                                   0,0,1,0.5
+                                   0,0,0,1" />
+  </StaticTransformation>
+
+  <DynamicTransformation>
+    <ComponentReference name="robot_arm" />
+    <TransformationHeader target="end_effector" expressed_in="robot_arm_fixture" /> 
+  </DynamicTransformation>
+
+  <DynamicTransformation>
+    <ComponentReference name="kalman_filter" port="odometry" />
+    <TransformationHeader target="robot_base" expressed_in="world" /> 
+  </DynamicTransformation>
+
+</provided>
+
+</transformations>
