@@ -10,6 +10,7 @@ import sys
 HEADER = "TransformationHeader"
 STATIC_TF = "StaticTransformation"
 DYN_TF = "DynamicTransformation"
+REQ_TF = "RequestedTransformation"
 REQ = "requested"
 PROV = "provided"
 ex_in  = "expressed_in"
@@ -25,15 +26,24 @@ COLOR_EDGE_INVALID = "red"
  
 # CHECK IF GRAPH IS A TREE
 def isTree(graph,parent = None, root = None, visited = Set()):
- 
+  
   shouldCheckVisitedNumber = False
   
-  if len(graph)==1:
+  if len(graph.frames)==1:
     return True
-  
+   
   if root is None: 
-    root = next(iter(graph.keys()))
+    root = graph.frames.values()[0]
     shouldCheckVisitedNumber = True    
+  
+  vs = ""
+  for v in visited:
+    vs+=str(v)+", "
+  
+  adjs = ""
+  for a in root.adjacencies():
+    adjs+=str(a)+", " 
+
 
   visited.add(root)
   
@@ -41,33 +51,54 @@ def isTree(graph,parent = None, root = None, visited = Set()):
   allIsWell = True
 
   # for all edges departing from the current node
-  for adj in graph[root]:
+  for adj in root.adjacencies():
     # pass over backwards-edge
-    if adj.target == parent:
+    if adj == parent:
       continue
     # if we meet an already visited node we
     # can abort because the graph is cyclic
-    elif adj.target in visited:
+    elif adj in visited:
+      print "current node: "+str(root)+"\nadjacents:"+adjs+"\nvisited: "+vs+"\n"+"next node: "+adj.name+" already visited"
       return False
     # else check sub-tree with next node as root
     else:
-      allIsWell = allIsWell and isTree(graph, root, adj.target, visited)
+      print "current node: "+str(root)+"\nadjacents:"+adjs+"\nvisited: "+vs+"\n"+"next node: "+adj.name+"\n"
+      allIsWell = allIsWell and isTree(graph, root, adj, visited)
  
   # if this was the original call, check if all nodes 
   # have been visited
   if shouldCheckVisitedNumber:
-    allIsWell = allIsWell and len(graph) == len(visited)
+    allIsWell = allIsWell and len(graph.frames) == len(visited)
+    print "visited all subtrees, have I seen the whole graph?",allIsWell
 
   return allIsWell       
 
 
 # Define Frame
 class Frame:
+
   def __init__ (self,name):
     self.name = name
+    self.edges = Set()
 
   def __str__(self):
     return self.name
+
+  def adjacencies(self):
+    adjacencies = []
+    #print len(self.edges)," adjacencies for ",self.name,":\n"
+    for edge in self.edges:
+
+      l = list(edge.frames)
+      #print "\t",l[0].name+"<->"+l[1].name
+
+      if l[0] == self:
+        adjacencies.append(l[1])
+      else:
+        adjacencies.append(l[0])
+    #print "\n"
+    return adjacencies  
+
 
 # Define Adjacency class (edge in graph)
 class Edge:
@@ -85,10 +116,20 @@ class Edge:
 class Graph:
   def __init__(self,name):
     self.name = name
-    self.frames = Set()
-    self.edges = Set()
+    self.frames = {} 
+    self.edges = Set() 
+
   def __str__(self):
-    return str(self.frames)+"\n"+str(self.edges)  
+    s = self.name+":\nframes:\n"
+    for frame in self.frames.values():
+      s += "\t"+str(frame)+"\n "
+
+    s += "\nedges:\n"
+
+    for edge in self.edges.values():
+      s += "\t"+str(edge)+"\n"
+
+    return s  
 
 # BUILD Transformation graph
 def buildGraph(fileName):
@@ -100,44 +141,47 @@ def buildGraph(fileName):
 
 # build graph for provided transformations
   
-  provided = Graph("provided transforms")
-  requested = Graph("requested transforms")
+  provided = buildGraphHelper(provided_tree,"provided transforms")
+  requested = buildGraphHelper(requested_tree,"requested transforms")
  
-  for child in provided_tree:
+  return [provided,requested]
+
+def buildGraphHelper(tree, label):
+   
+  graph = Graph(label)
+
+  for child in tree:
     header = child.find(HEADER)
 
-    fr_tar  = Frame(header.get(tar))
-    fr_ex = Frame(header.get(ex_in)) 
+    tar_name = header.get(tar)
+    ex_name = header.get(ex_in)
+
+    if ex_name in graph.frames:
+      fr_ex = graph.frames[ex_name]
+    else:
+      fr_ex  = Frame(header.get(ex_in))
+      graph.frames[fr_ex.name] = fr_ex
+
+    if tar_name in graph.frames:
+      fr_tar = graph.frames[tar_name]
+    else:
+      fr_tar  = Frame(header.get(tar))
+      graph.frames[fr_tar.name] = fr_tar 
+
     edge_style = STATIC_EDGE_STYLE  
     if child.tag == DYN_TF:
       edge_style = DYNAMIC_EDGE_STYLE
+    if child.tag == REQ_TF:
+      edge_style = REQUESTED_EDGE_STYLE
 
-    tarToEx = Edge((fr_tar,fr_ex),edge_style)
+    tarToEx = Edge((fr_tar,fr_ex),edge_style) 
 
-    print tarToEx
+    fr_tar.edges.add(tarToEx)
+    fr_ex.edges.add(tarToEx)
 
-    provided.frames.add(fr_tar)
-    provided.frames.add(fr_ex)
-    provided.edges.add(tarToEx)    
+    graph.edges.add(tarToEx)    
 
-  
-
-  for child in requested_tree:
-    header       = child.find(HEADER)
-
-    fr_tar  = Frame(header.get(tar))
-    fr_ex = Frame(header.get(ex_in)) 
-   
-    edge_style = REQUESTED_EDGE_STYLE
-
-    tarToEx = Edge((fr_tar,fr_ex))
-    
-    requested.frames.add(fr_tar)
-    requested.frames.add(fr_ex)
-    requested.edges.add(tarToEx)    
-
-  return [provided,requested]
-
+  return graph
 # BUILD GRAPHVIZ GRAPH FROM TRANSFORMATION GRAPH
 
 def renderGraph(graphs):
@@ -148,7 +192,7 @@ def renderGraph(graphs):
     with parent.subgraph(name="cluster_"+graph.name) as sg: 
       sg.attr(label=graph.name)
 
-      for frame in graph.frames:
+      for frame in graph.frames.values():
         sg.node(frame.name+"_"+str(i),frame.name)
      
       for edge in graph.edges:

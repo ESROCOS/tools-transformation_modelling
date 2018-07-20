@@ -6,13 +6,15 @@ import sys
 
 FILE = sys.argv[1]
 
+graphs = estrano.buildGraph(FILE)
 
-provided_graph = estrano.buildGraph(FILE)
+#print graphs[0] 
 
+#print graphs[1]
 
+print estrano.isTree(graphs[0])
 
-
-estrano.renderGraph(provided_graph) 
+estrano.renderGraph(graphs) 
   
 
 
