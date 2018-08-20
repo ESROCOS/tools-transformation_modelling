@@ -24,8 +24,13 @@ GRAPH_NAME = "Transformation"
 DYNAMIC_EDGE_STYLE = "dashed"
 STATIC_EDGE_STYLE = "solid"
 REQUESTED_EDGE_STYLE = "dotted"
+COLOR_EDGE_DEFAULT = "black"
 COLOR_EDGE_VALID = "green" 
 COLOR_EDGE_INVALID = "red"
+
+# CHECK IF THERE IS A PATH FROM A TO B
+def isPath(graph,a,b):
+  pass
  
 # CHECK IF GRAPH IS A TREE
 def isTree(graph,parent = None, root = None, visited = set()):
@@ -108,6 +113,7 @@ class Edge:
     self.color = color
     self.frames = frames
     self.label = label
+    self.name = "" 
 
   def __str__(self):
     l = list(self.frames)
@@ -185,6 +191,8 @@ def buildGraphHelper(tree, label):
       edge_style = REQUESTED_EDGE_STYLE
 
     tarToEx = Edge((fr_tar,fr_ex),name,edge_style) 
+    
+    #tarToEx.name = ""
 
     fr_tar.edges.add(tarToEx)
     fr_ex.edges.add(tarToEx)
@@ -208,8 +216,6 @@ def renderGraph(graphs):
      
       for edge in graph.edges:
         l = list(edge.frames)
-        sg.edge(l[0].name+"_"+str(i),l[1].name+"_"+str(i), style=edge.style, color=edge.color, label=" "+edge.label)
+        sg.edge(l[0].name+"_"+str(i),l[1].name+"_"+str(i), style=edge.style, color=edge.color, label=" "+edge.label+"\n"+" "+edge.name)
 
   parent.render('transforms.gv', view=True)
-
-
