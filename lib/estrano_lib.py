@@ -3,7 +3,7 @@
 import xml.etree.cElementTree as ET
 from graphviz import Graph as gvGraph
 from sets import Set
-import transformer_py as t
+#import transformer_py as t
 import sys
 
 # XML TAGS AND ATTRIBUTES
@@ -13,7 +13,7 @@ DYN_TF = "DynamicTransformation"
 REQ_TF = "RequestedTransformation"
 REQ = "requested"
 PROV = "provided"
-ex_in  = "expressed_in"
+ex  = "expressed_in"
 tar = "target" 
 
 # CONFIGURABLE ATTRIBUTES
@@ -44,7 +44,6 @@ def isTree(graph,parent = None, root = None, visited = Set()):
   for a in root.adjacencies():
     adjs+=str(a)+", " 
 
-
   visited.add(root)
   
   # Flag to return later on
@@ -58,18 +57,18 @@ def isTree(graph,parent = None, root = None, visited = Set()):
     # if we meet an already visited node we
     # can abort because the graph is cyclic
     elif adj in visited:
-      print "current node: "+str(root)+"\nadjacents:"+adjs+"\nvisited: "+vs+"\n"+"next node: "+adj.name+" already visited"
+#      print "current node: "+str(root)+"\nadjacents:"+adjs+"\nvisited: "+vs+"\n"+"next node: "+adj.name+" already visited"
       return False
     # else check sub-tree with next node as root
     else:
-      print "current node: "+str(root)+"\nadjacents:"+adjs+"\nvisited: "+vs+"\n"+"next node: "+adj.name+"\n"
+#      print "current node: "+str(root)+"\nadjacents:"+adjs+"\nvisited: "+vs+"\n"+"next node: "+adj.name+"\n"
       allIsWell = allIsWell and isTree(graph, root, adj, visited)
  
   # if this was the original call, check if all nodes 
   # have been visited
   if shouldCheckVisitedNumber:
     allIsWell = allIsWell and len(graph.frames) == len(visited)
-    print "visited all subtrees, have I seen the whole graph?",allIsWell
+#    print "visited all subtrees, have I seen the whole graph?",allIsWell
 
   return allIsWell       
 
@@ -88,10 +87,8 @@ class Frame:
     adjacencies = []
     #print len(self.edges)," adjacencies for ",self.name,":\n"
     for edge in self.edges:
-
       l = list(edge.frames)
       #print "\t",l[0].name+"<->"+l[1].name
-
       if l[0] == self:
         adjacencies.append(l[1])
       else:
@@ -154,12 +151,12 @@ def buildGraphHelper(tree, label):
     header = child.find(HEADER)
 
     tar_name = header.get(tar)
-    ex_name = header.get(ex_in)
+    ex_name = header.get(ex)
 
     if ex_name in graph.frames:
       fr_ex = graph.frames[ex_name]
     else:
-      fr_ex  = Frame(header.get(ex_in))
+      fr_ex  = Frame(header.get(ex))
       graph.frames[fr_ex.name] = fr_ex
 
     if tar_name in graph.frames:
