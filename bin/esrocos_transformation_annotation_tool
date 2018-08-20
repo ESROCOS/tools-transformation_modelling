@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import estrano_lib as estrano
 import sys
@@ -12,7 +12,7 @@ graphs = estrano.buildGraph(FILE)
 
 #print graphs[1]
 
-print estrano.isTree(graphs[0])
+print(estrano.isTree(graphs[0]))
 
 estrano.renderGraph(graphs) 
   

@@ -17,7 +17,7 @@
 
   <StaticTransformation> <!-- name is optional, will be auto-generated otherwise as e.g. from2to, if they are required at all -->
     <TransformationHeader target="robot_arm_fixture" expressed_in="robot_base" /> 
-    <TransformatuinValue matrix = "1,0,0,0.2
+    <TransformationValue matrix = "1,0,0,0.2
                                    0,1,0,0
                                    0,0,1,0.5
                                    0,0,0,1" />
@@ -25,7 +25,7 @@
 
   <StaticTransformation> <!-- name is optional, will be auto-generated otherwise as e.g. from2to, if they are required at all -->
     <TransformationHeader target="camera" expressed_in="end_effector" /> 
-    <TransformatuinValue matrix = "1,0,0,0.2
+    <TransformationValue matrix = "1,0,0,0.2
                                    0,1,0,0
                                    0,0,1,0.5
                                    0,0,0,1" />

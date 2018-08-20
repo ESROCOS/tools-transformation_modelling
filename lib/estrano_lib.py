@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 import xml.etree.cElementTree as ET
+import networkx as nx
 from graphviz import Graph as gvGraph
-from sets import Set
 #import transformer_py as t
 import sys
 
@@ -13,8 +13,11 @@ DYN_TF = "DynamicTransformation"
 REQ_TF = "RequestedTransformation"
 REQ = "requested"
 PROV = "provided"
-ex  = "expressed_in"
-tar = "target" 
+EX  = "expressed_in"
+TAR = "target" 
+
+COMP_REF = "ComponentReference"
+NAME = "name"
 
 # CONFIGURABLE ATTRIBUTES
 GRAPH_NAME = "Transformation"
@@ -25,7 +28,7 @@ COLOR_EDGE_VALID = "green"
 COLOR_EDGE_INVALID = "red"
  
 # CHECK IF GRAPH IS A TREE
-def isTree(graph,parent = None, root = None, visited = Set()):
+def isTree(graph,parent = None, root = None, visited = set()):
   
   shouldCheckVisitedNumber = False
   
@@ -33,7 +36,7 @@ def isTree(graph,parent = None, root = None, visited = Set()):
     return True
    
   if root is None: 
-    root = graph.frames.values()[0]
+    root = list(graph.frames.values())[0]
     shouldCheckVisitedNumber = True    
   
   vs = ""
@@ -78,7 +81,8 @@ class Frame:
 
   def __init__ (self,name):
     self.name = name
-    self.edges = Set()
+    self.edges = set()
+    self.color = "black"
 
   def __str__(self):
     return self.name
@@ -99,10 +103,11 @@ class Frame:
 
 # Define Adjacency class (edge in graph)
 class Edge:
-  def __init__(self, frames, style="solid", color="black"):
+  def __init__(self, frames, label = "", style="solid", color="black"):
     self.style = style
     self.color = color
     self.frames = frames
+    self.label = label
 
   def __str__(self):
     l = list(self.frames)
@@ -114,7 +119,7 @@ class Graph:
   def __init__(self,name):
     self.name = name
     self.frames = {} 
-    self.edges = Set() 
+    self.edges = set() 
 
   def __str__(self):
     s = self.name+":\nframes:\n"
@@ -148,30 +153,38 @@ def buildGraphHelper(tree, label):
   graph = Graph(label)
 
   for child in tree:
+    # process header (to and from infos) 
     header = child.find(HEADER)
 
-    tar_name = header.get(tar)
-    ex_name = header.get(ex)
+    tar_name = header.get(TAR)
+    ex_name = header.get(EX)
 
     if ex_name in graph.frames:
       fr_ex = graph.frames[ex_name]
     else:
-      fr_ex  = Frame(header.get(ex))
+      fr_ex  = Frame(header.get(EX))
       graph.frames[fr_ex.name] = fr_ex
 
     if tar_name in graph.frames:
       fr_tar = graph.frames[tar_name]
     else:
-      fr_tar  = Frame(header.get(tar))
+      fr_tar  = Frame(header.get(TAR))
       graph.frames[fr_tar.name] = fr_tar 
-
+    # process component ref if there is any
+    comp_ref = child.find(COMP_REF)
+    
+    name = "" 
+    if not comp_ref is None:
+      name = comp_ref.get(NAME)
+    
+    # process edge type and associated style
     edge_style = STATIC_EDGE_STYLE  
     if child.tag == DYN_TF:
       edge_style = DYNAMIC_EDGE_STYLE
     if child.tag == REQ_TF:
       edge_style = REQUESTED_EDGE_STYLE
 
-    tarToEx = Edge((fr_tar,fr_ex),edge_style) 
+    tarToEx = Edge((fr_tar,fr_ex),name,edge_style) 
 
     fr_tar.edges.add(tarToEx)
     fr_ex.edges.add(tarToEx)
@@ -183,6 +196,7 @@ def buildGraphHelper(tree, label):
 
 def renderGraph(graphs):
   parent = gvGraph(comment=GRAPH_NAME)
+  #parent.graph_attr['rankdir'] = 'LR'
   
   for i, graph in enumerate(graphs):  
    
@@ -194,7 +208,7 @@ def renderGraph(graphs):
      
       for edge in graph.edges:
         l = list(edge.frames)
-        sg.edge(l[0].name+"_"+str(i),l[1].name+"_"+str(i), style=edge.style, color=edge.color)
+        sg.edge(l[0].name+"_"+str(i),l[1].name+"_"+str(i), style=edge.style, color=edge.color, label=" "+edge.label)
 
   parent.render('transforms.gv', view=True)
 
