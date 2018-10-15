@@ -3,7 +3,6 @@
 import xml.etree.cElementTree as ET
 import networkx as nx
 from graphviz import Graph as gvGraph
-#import transformer_py as t
 import sys
 
 # XML TAGS AND ATTRIBUTES
@@ -141,8 +140,12 @@ class Graph:
 
 # BUILD Transformation graph
 def buildGraph(fileName):
-  tree = ET.parse(fileName)
-  root = tree.getroot()
+  
+  try:  
+    tree = ET.parse(fileName)
+    root = tree.getroot()
+  except:
+    raise
 
   requested_tree = root.find(REQ)
   provided_tree = root.find(PROV)
@@ -202,8 +205,9 @@ def buildGraphHelper(tree, label):
   return graph
 # BUILD GRAPHVIZ GRAPH FROM TRANSFORMATION GRAPH
 
-def renderGraph(graphs):
-  parent = gvGraph(comment=GRAPH_NAME)
+
+def renderGraph(graphs, display=False):
+  parent = gvGraph(comment=GRAPH_NAME, format='png')
   #parent.graph_attr['rankdir'] = 'LR'
   
   for i, graph in enumerate(graphs):  
@@ -218,4 +222,5 @@ def renderGraph(graphs):
         l = list(edge.frames)
         sg.edge(l[0].name+"_"+str(i),l[1].name+"_"+str(i), style=edge.style, color=edge.color, label=" "+edge.label+"\n"+" "+edge.name)
 
-  parent.render('transforms.gv', view=True)
+  parent.render('transforms.gv', view=display)
+  return 'transforms.gv.png'

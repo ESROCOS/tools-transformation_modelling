@@ -1,0 +1,68 @@
+#!/usr/bin/python3
+#!/usr/bin/env python
+
+import sys
+import estrano_lib as estrano
+from estramo_gui import Ui_MainWindow
+from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QFileDialog, QInputDialog
+from PyQt5.QtGui import QIcon, QPixmap
+
+def import_transformations(filename):
+    try: 
+        graphs = estrano.buildGraph(filename)
+        return estrano.renderGraph(graphs)
+    except:
+        raise
+
+class mainWindow(QMainWindow):
+  
+    ui_filename = "../gui/estramo.ui" # Enter file here.
+
+    def openFileNameDialog(self):    
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","All Files (*);;Python Files (*.py)", options=options)
+        if fileName:
+            self.ui.import_filename.setText(fileName)
+
+    def log(self,msg):
+        self.ui.textOutput.append(msg)
+
+    def clearLog(self):
+        self.ui.textOutput.clear()
+
+    def import_tfs(self):         
+        fname = self.ui.import_filename.text()
+        self.log("import "+fname)
+        try:
+            image_fname = import_transformations(fname)
+            #use full ABSOLUTE path to the image, not relative
+            pixmap = QPixmap(image_fname)
+            self.ui.display.setPixmap(pixmap)
+        except FileNotFoundError as err:
+            self.log(str(err))
+        except:
+            raise
+
+
+    def __init__(self):
+        super().__init__()
+
+        # Set up the user interface from Designer.
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+        self.log("initialising...")
+
+        self.ui.clear_button.clicked.connect(self.clearLog)
+        self.ui.import_button.clicked.connect(self.import_tfs)
+        self.ui.browse_button.clicked.connect(self.openFileNameDialog)
+
+if __name__ == '__main__':
+ 
+    app = QApplication(sys.argv)
+    window = mainWindow()
+    window.show()
+    sys.exit(app.exec_())
+
+
+
