@@ -3,7 +3,7 @@
 
 import sys
 import estrano_lib as estrano
-from estramo_gui import Ui_MainWindow
+from estrano_gui import Ui_MainWindow
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QFileDialog, QInputDialog
 from PyQt5.QtGui import QIcon, QPixmap
 
@@ -16,8 +16,6 @@ def import_transformations(filename):
 
 class mainWindow(QMainWindow):
   
-    ui_filename = "../gui/estramo.ui" # Enter file here.
-
     def openFileNameDialog(self):    
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
@@ -37,8 +35,10 @@ class mainWindow(QMainWindow):
         try:
             image_fname = import_transformations(fname)
             #use full ABSOLUTE path to the image, not relative
-            pixmap = QPixmap(image_fname)
-            self.ui.display.setPixmap(pixmap)
+            pixmap_r = QPixmap(image_fname['requested'])
+            pixmap_p = QPixmap(image_fname['provided'])
+            self.ui.display_p.setPixmap(pixmap_p)
+            self.ui.display_r.setPixmap(pixmap_r)
         except FileNotFoundError as err:
             self.log(str(err))
         except:

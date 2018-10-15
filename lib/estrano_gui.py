@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './gui/estramo_gui.ui'
+# Form implementation generated from reading ui file './gui/estrano_gui.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
@@ -45,10 +45,17 @@ class Ui_MainWindow(object):
         self.import_button.setObjectName("import_button")
         self.fileinput.addWidget(self.import_button)
         self.verticalLayout.addLayout(self.fileinput)
-        self.display = QtWidgets.QLabel(self.centralwidget)
-        self.display.setText("")
-        self.display.setObjectName("display")
-        self.verticalLayout.addWidget(self.display)
+        self.displays = QtWidgets.QHBoxLayout()
+        self.displays.setObjectName("displays")
+        self.display_p = QtWidgets.QLabel(self.centralwidget)
+        self.display_p.setText("")
+        self.display_p.setObjectName("display_p")
+        self.displays.addWidget(self.display_p)
+        self.display_r = QtWidgets.QLabel(self.centralwidget)
+        self.display_r.setText("")
+        self.display_r.setObjectName("display_r")
+        self.displays.addWidget(self.display_r)
+        self.verticalLayout.addLayout(self.displays)
         self.tools = QtWidgets.QHBoxLayout()
         self.tools.setObjectName("tools")
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)

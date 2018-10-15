@@ -73,11 +73,22 @@
        </layout>
       </item>
       <item>
-       <widget class="QLabel" name="display">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="displays">
+        <item>
+         <widget class="QLabel" name="display_p">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="display_r">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <layout class="QHBoxLayout" name="tools">
