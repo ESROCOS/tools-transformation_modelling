@@ -7,21 +7,52 @@ from estrano_gui import Ui_MainWindow
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QFileDialog, QInputDialog
 from PyQt5.QtGui import QIcon, QPixmap
 
-def import_transformations(filename):
+def estrano_import_tfs(filename):
     try: 
         graphs = estrano.buildGraph(filename)
-        return estrano.renderGraph(graphs)
+        return graphs
+    except:
+       raise
+
+def estrano_renderGraphs(graphs):
+    try:
+        filenames = estrano.renderGraph(graphs)
+        return filenames
+    except:
+        raise
+
+def estrano_isTree(graph):
+    try:
+        isTree = estrano.isTree(graph)
+        return isTree
     except:
         raise
 
 class mainWindow(QMainWindow):
-  
+
     def openFileNameDialog(self):    
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","All Files (*);;Python Files (*.py)", options=options)
         if fileName:
             self.ui.import_filename.setText(fileName)
+
+    def isTree(self):
+
+        try:
+            check = False
+            for g in self.graphs:
+                if g.name == "provided":
+                    check = True
+                    self.log("checking if provided tfs form a tree: ") 
+                    isTree = estrano_isTree(g)
+                    self.log("["+str(isTree)+"]") 
+            if not check:
+                self.log("there is no graph called 'provided'")
+        except AttributeError as err:
+            self.log("please import a transformation file first")
+        except: 
+            raise
 
     def log(self,msg):
         self.ui.textOutput.append(msg)
@@ -33,17 +64,19 @@ class mainWindow(QMainWindow):
         fname = self.ui.import_filename.text()
         self.log("import "+fname)
         try:
-            image_fname = import_transformations(fname)
+            self.graphs = estrano_import_tfs(fname)
+            image_fnames = estrano_renderGraphs(self.graphs)
+
             #use full ABSOLUTE path to the image, not relative
-            pixmap_r = QPixmap(image_fname['requested'])
-            pixmap_p = QPixmap(image_fname['provided'])
+            pixmap_r = QPixmap(image_fnames['requested'])
+            pixmap_p = QPixmap(image_fnames['provided'])
+
             self.ui.display_p.setPixmap(pixmap_p)
             self.ui.display_r.setPixmap(pixmap_r)
         except FileNotFoundError as err:
             self.log(str(err))
         except:
             raise
-
 
     def __init__(self):
         super().__init__()
@@ -53,6 +86,7 @@ class mainWindow(QMainWindow):
         self.ui.setupUi(self)
         self.log("initialising...")
 
+        self.ui.validate_button.clicked.connect(self.isTree)
         self.ui.clear_button.clicked.connect(self.clearLog)
         self.ui.import_button.clicked.connect(self.import_tfs)
         self.ui.browse_button.clicked.connect(self.openFileNameDialog)
