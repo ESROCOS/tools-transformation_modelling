@@ -73,6 +73,9 @@ class mainWindow(QMainWindow):
 
             self.ui.display_p.setPixmap(pixmap_p)
             self.ui.display_r.setPixmap(pixmap_r)
+
+            self.ui.transformations.show()
+
         except FileNotFoundError as err:
             self.log(str(err))
         except:
@@ -85,6 +88,8 @@ class mainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.log("initialising...")
+
+        self.ui.transformations.hide()
 
         self.ui.validate_button.clicked.connect(self.isTree)
         self.ui.clear_button.clicked.connect(self.clearLog)
