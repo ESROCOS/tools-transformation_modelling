@@ -1,0 +1,21 @@
+<transformations>
+
+  <requested>
+    <RequestedTransformation>
+      <TransformationHeader from="" to="" />
+      <ComponentReference name=""/>
+    </RequestedTransformation>
+  </requested>
+
+  <provided>
+    <StaticTransformation>
+      <TransformationHeader from="" to="" />
+      <ComponentReference name=""/>
+    </StaticTransformation>
+    <DynamicTransformation>
+      <TransformationHeader from="" to="" />
+      <ComponentReference name=""/>
+    </DynamicTransformation>
+  </provided>
+
+</transformations>

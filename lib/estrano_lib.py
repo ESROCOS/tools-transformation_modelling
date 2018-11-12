@@ -3,7 +3,6 @@
 import xml.etree.cElementTree as ET
 import networkx as nx
 from graphviz import Graph as gvGraph
-#import transformer_py as t
 import sys
 
 # XML TAGS AND ATTRIBUTES
@@ -20,6 +19,7 @@ COMP_REF = "ComponentReference"
 NAME = "name"
 
 # CONFIGURABLE ATTRIBUTES
+RENDER_PREFIX = "transforms_"
 GRAPH_NAME = "Transformation"
 DYNAMIC_EDGE_STYLE = "dashed"
 STATIC_EDGE_STYLE = "solid"
@@ -141,16 +141,20 @@ class Graph:
 
 # BUILD Transformation graph
 def buildGraph(fileName):
-  tree = ET.parse(fileName)
-  root = tree.getroot()
+  
+  try:  
+    tree = ET.parse(fileName)
+    root = tree.getroot()
+  except:
+    raise
 
   requested_tree = root.find(REQ)
   provided_tree = root.find(PROV)
 
 # build graph for provided transformations
   
-  provided = buildGraphHelper(provided_tree,"provided transforms")
-  requested = buildGraphHelper(requested_tree,"requested transforms")
+  provided = buildGraphHelper(provided_tree,"provided")
+  requested = buildGraphHelper(requested_tree,"requested")
  
   return [provided,requested]
 
@@ -202,20 +206,23 @@ def buildGraphHelper(tree, label):
   return graph
 # BUILD GRAPHVIZ GRAPH FROM TRANSFORMATION GRAPH
 
-def renderGraph(graphs):
-  parent = gvGraph(comment=GRAPH_NAME)
+def renderGraph(graphs, display=False):
   #parent.graph_attr['rankdir'] = 'LR'
   
+  filenames = {}
+
   for i, graph in enumerate(graphs):  
-   
-    with parent.subgraph(name="cluster_"+graph.name) as sg: 
-      sg.attr(label=graph.name)
+    g = gvGraph(comment=GRAPH_NAME, format='png')
 
-      for frame in graph.frames.values():
-        sg.node(frame.name+"_"+str(i),frame.name)
+    for frame in graph.frames.values():
+      g.node(frame.name+"_"+str(i),frame.name)
      
-      for edge in graph.edges:
-        l = list(edge.frames)
-        sg.edge(l[0].name+"_"+str(i),l[1].name+"_"+str(i), style=edge.style, color=edge.color, label=" "+edge.label+"\n"+" "+edge.name)
+    for edge in graph.edges:
+      l = list(edge.frames)
+      g.edge(l[0].name+"_"+str(i),l[1].name+"_"+str(i), style=edge.style, color=edge.color, label=" "+edge.label+"\n"+" "+edge.name)
 
-  parent.render('transforms.gv', view=True)
+    filename = RENDER_PREFIX+graph.name+'.gv'
+    filenames[graph.name] = ""+filename+'.png'
+    g.render(filename, view=display)
+
+  return filenames
