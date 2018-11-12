@@ -31,7 +31,17 @@ COLOR_EDGE_INVALID = "red"
 
 # CHECK IF THERE IS A PATH FROM A TO B and return it
 def existsPath(graph,a,b):
-  pass
+   if a in graph.frames and b in graph.frames:
+     va = graph.frames[a]
+     r = reachableNodes(graph, None, va)
+   for f in r:
+     print(f)
+   
+   for v in r:
+     if v.name == b:
+       return True
+   
+   return False
  
 def isTree(graph):
   istree = True
@@ -47,24 +57,24 @@ def isTree(graph):
 # graph is a tree, the number of visited nodes will be equal
 # to the number of all nodes in the graph
 def isConnected(graph):
-  c = reachableNodes(graph)
+  c = len(reachableNodes(graph))
   if c == len(graph.frames):
     return True
   else:
     return False
 
 # recursive function for depth search
-def reachableNodes(graph,parent = None, root = None, visited = set()):
-  # Trivial case, if the graph only has one node, it is a tree  
-  if len(graph.frames)==1:
-    return 1
+def reachableNodes(graph,parent = None, root = None):
+
   if root is None: 
     root = list(graph.frames.values())[0]
-  visited.add(root)
+     
+  # store all subnodes including this
+  visited = [root];
+ 
+  print("visiting: "+root.name)
 
-  # count all subnodes including this
-  vsum = 1;
-    # for all edges departing from the current node
+  # for all edges departing from the current node
   for adj in root.adjacencies():
     # pass over backwards-edge
     if adj == parent:
@@ -74,8 +84,8 @@ def reachableNodes(graph,parent = None, root = None, visited = set()):
       continue
     # else check sub-tree with next node as root
     else:
-      vsum += reachableNodes(graph, root, adj, visited)
-  return vsum       
+      visited.extend(reachableNodes(graph, root, adj))
+  return visited       
 
 # CHECK IF GRAPH HAS CYCLES
 def isAcyclic(graph,parent = None, root = None, visited = set()):
@@ -162,7 +172,7 @@ class Graph:
 
     s += "\nedges:\n"
 
-    for edge in self.edges.values():
+    for edge in self.edges:
       s += "\t"+str(edge)+"\n"
 
     return s  

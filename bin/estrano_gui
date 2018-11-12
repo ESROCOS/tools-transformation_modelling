@@ -28,6 +28,13 @@ def estrano_isTree(graph):
     except:
         raise
 
+def estrano_existsPath(graph,a,b):
+    try:
+        e = estrano.existsPath(graph,a,b)
+        return e
+    except:
+        raise
+
 class mainWindow(QMainWindow):
 
     def openFileNameDialog(self):    
@@ -37,6 +44,21 @@ class mainWindow(QMainWindow):
         if fileName:
             self.ui.import_filename.setText(fileName)
 
+    def checkRequested(self):
+      gs = {} 
+       
+      for g in self.graphs:
+        if g.name == "provided":
+          gs["p"] = g
+        if g.name == "requested":
+          gs["r"] = g
+
+      for e in gs["r"].edges:
+        print(e)
+        
+        frames = list(e.frames)
+        print(estrano_existsPath(gs["p"],frames[0].name,frames[1].name))
+     
     def isTree(self):
 
         try:
@@ -90,7 +112,8 @@ class mainWindow(QMainWindow):
         self.log("initialising...")
 
         self.ui.transformations.hide()
-
+         
+        self.ui.check_requested_tfs_button.clicked.connect(self.checkRequested)
         self.ui.validate_button.clicked.connect(self.isTree)
         self.ui.clear_button.clicked.connect(self.clearLog)
         self.ui.import_button.clicked.connect(self.import_tfs)
