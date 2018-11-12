@@ -28,29 +28,64 @@ COLOR_EDGE_DEFAULT = "black"
 COLOR_EDGE_VALID = "green" 
 COLOR_EDGE_INVALID = "red"
 
-# CHECK IF THERE IS A PATH FROM A TO B
-def isPath(graph,a,b):
+
+# CHECK IF THERE IS A PATH FROM A TO B and return it
+def existsPath(graph,a,b):
   pass
  
-# CHECK IF GRAPH IS A TREE
-def isTree(graph,parent = None, root = None, visited = set()):
-  
-  shouldCheckVisitedNumber = False
-  
-  if len(graph.frames)==1:
+def isTree(graph):
+  istree = True
+  # depth first search to find cycles
+  cy = isAcyclic(graph)
+  print("is acyclic: ",cy)
+  # depth first search to check connectedness
+  cn = isConnected(graph)
+  print("is connected: ",cn)
+  return cy and cn 
+
+# performs a depth first search from a arbitrary node, if the
+# graph is a tree, the number of visited nodes will be equal
+# to the number of all nodes in the graph
+def isConnected(graph):
+  c = reachableNodes(graph)
+  if c == len(graph.frames):
     return True
-   
+  else:
+    return False
+
+# recursive function for depth search
+def reachableNodes(graph,parent = None, root = None, visited = set()):
+  # Trivial case, if the graph only has one node, it is a tree  
+  if len(graph.frames)==1:
+    return 1
   if root is None: 
     root = list(graph.frames.values())[0]
-    shouldCheckVisitedNumber = True    
+  visited.add(root)
+
+  # count all subnodes including this
+  vsum = 1;
+    # for all edges departing from the current node
+  for adj in root.adjacencies():
+    # pass over backwards-edge
+    if adj == parent:
+      continue
+    # pass over already visited nodes
+    elif adj in visited:
+      continue
+    # else check sub-tree with next node as root
+    else:
+      vsum += reachableNodes(graph, root, adj, visited)
+  return vsum       
+
+# CHECK IF GRAPH HAS CYCLES
+def isAcyclic(graph,parent = None, root = None, visited = set()):
   
-  vs = ""
-  for v in visited:
-    vs+=str(v)+", "
-  
-  adjs = ""
-  for a in root.adjacencies():
-    adjs+=str(a)+", " 
+  # Trivial case, if the graph only has one node, it is a tree  
+  if len(graph.frames)==1:
+    return True
+
+  if root is None: 
+    root = list(graph.frames.values())[0]
 
   visited.add(root)
   
@@ -59,27 +94,21 @@ def isTree(graph,parent = None, root = None, visited = set()):
 
   # for all edges departing from the current node
   for adj in root.adjacencies():
+
     # pass over backwards-edge
     if adj == parent:
       continue
+    
     # if we meet an already visited node we
     # can abort because the graph is cyclic
     elif adj in visited:
-#      print "current node: "+str(root)+"\nadjacents:"+adjs+"\nvisited: "+vs+"\n"+"next node: "+adj.name+" already visited"
       return False
+    
     # else check sub-tree with next node as root
     else:
-#      print "current node: "+str(root)+"\nadjacents:"+adjs+"\nvisited: "+vs+"\n"+"next node: "+adj.name+"\n"
-      allIsWell = allIsWell and isTree(graph, root, adj, visited)
- 
-  # if this was the original call, check if all nodes 
-  # have been visited
-  if shouldCheckVisitedNumber:
-    allIsWell = allIsWell and len(graph.frames) == len(visited)
-#    print "visited all subtrees, have I seen the whole graph?",allIsWell
+      allIsWell = allIsWell and isAcyclic(graph, root, adj, visited)
 
   return allIsWell       
-
 
 # Define Frame
 class Frame:
@@ -104,7 +133,6 @@ class Frame:
         adjacencies.append(l[0])
     #print "\n"
     return adjacencies  
-
 
 # Define Adjacency class (edge in graph)
 class Edge:
