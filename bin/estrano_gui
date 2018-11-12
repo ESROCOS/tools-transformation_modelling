@@ -37,6 +37,16 @@ def estrano_existsPath(graph,a,b):
 
 class mainWindow(QMainWindow):
 
+    def redraw_tfs(self):
+       image_fnames = estrano_renderGraphs(self.graphs)
+
+       #use full ABSOLUTE path to the image, not relative
+       pixmap_r = QPixmap(image_fnames['requested'])
+       pixmap_p = QPixmap(image_fnames['provided'])
+
+       self.ui.display_p.setPixmap(pixmap_p)
+       self.ui.display_r.setPixmap(pixmap_r)
+
     def openFileNameDialog(self):    
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
@@ -54,10 +64,16 @@ class mainWindow(QMainWindow):
           gs["r"] = g
 
       for e in gs["r"].edges:
-        print(e)
         
         frames = list(e.frames)
-        print(estrano_existsPath(gs["p"],frames[0].name,frames[1].name))
+        if estrano_existsPath(gs["p"],frames[0].name,frames[1].name):
+          self.log(str(e)+" valid: True")
+          e.color="green"
+        else:
+          self.log(str(e)+" valid: False")
+          e.color="red"
+  
+      self.redraw_tfs() 
      
     def isTree(self):
 
@@ -82,26 +98,22 @@ class mainWindow(QMainWindow):
     def clearLog(self):
         self.ui.textOutput.clear()
 
+
+
     def import_tfs(self):         
-        fname = self.ui.import_filename.text()
-        self.log("import "+fname)
-        try:
-            self.graphs = estrano_import_tfs(fname)
-            image_fnames = estrano_renderGraphs(self.graphs)
+      fname = self.ui.import_filename.text()
+      self.log("import "+fname)
+      try:
+        self.graphs = estrano_import_tfs(fname)
+        
+        self.redraw_tfs()
 
-            #use full ABSOLUTE path to the image, not relative
-            pixmap_r = QPixmap(image_fnames['requested'])
-            pixmap_p = QPixmap(image_fnames['provided'])
+        self.ui.transformations.show()
 
-            self.ui.display_p.setPixmap(pixmap_p)
-            self.ui.display_r.setPixmap(pixmap_r)
-
-            self.ui.transformations.show()
-
-        except FileNotFoundError as err:
+      except FileNotFoundError as err:
             self.log(str(err))
-        except:
-            raise
+      except:
+        raise
 
     def __init__(self):
         super().__init__()
